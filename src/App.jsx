@@ -1,16 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "../components/Navbar.jsx";
-import Home from "./pages/Home.jsx";
-import AddEditProduct from "./pages/AddEditProduct.jsx";
+import AddEditProduct from "./components/AddEditProduct.jsx";
+import Home from "./components/Home.jsx";
 
 function App() {
   return (
     <Router>
-      <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/add" element={<AddEditProduct />} />
-        <Route path="/edit/:id" element={<AddEditProduct />} />
+        <Route path="/" element={<Home />} />          {/* Homepage */}
+        <Route path="/add" element={<AddEditProduct />} />   {/* Add/Edit Product page */}
       </Routes>
     </Router>
   );
