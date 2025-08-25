@@ -6,15 +6,15 @@ export default function AddEditProduct() {
   const [productname, setProductname] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
-  const [editingId, setEditingId] = useState(null); // null means creating new product
+  const [editingId, setEditingId] = useState(null);
 
   // Fetch all products
   const fetchProducts = async () => {
     try {
       const res = await API.get("/products/getproduct");
-      setProducts(res.data.data);
+      setProducts(res.data.data || []); // fallback if no data
     } catch (error) {
-      console.error(error);
+      console.error("Fetch Products Error:", error.response || error.message);
     }
   };
 
@@ -25,6 +25,12 @@ export default function AddEditProduct() {
   // Handle Add or Update
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!productname || !price || !stock) {
+      alert("All fields are required");
+      return;
+    }
+
     const productData = {
       productname,
       price: Number(price),
@@ -33,24 +39,27 @@ export default function AddEditProduct() {
 
     try {
       if (editingId) {
-        // Update
-        await API.put(`/products/updateproduct/${editingId}`, productData);
+        // Update product
+        const res = await API.put(`/products/updateproduct/${editingId}`, productData);
+        console.log("Update Response:", res.data);
       } else {
-        // Create
-        await API.post("/products/createproduct", productData);
+        // Add new product
+        const res = await API.post("/products/createproduct", productData);
+        console.log("Add Response:", res.data);
       }
+
+      // Reset form
       setProductname("");
       setPrice("");
       setStock("");
       setEditingId(null);
-      fetchProducts(); // refresh list
+      fetchProducts(); // Refresh product list
     } catch (error) {
-      console.error(error);
-      alert("Something went wrong!");
+      console.error("Submit Error:", error.response || error.message);
+      alert("Something went wrong! Check console.");
     }
   };
 
-  // Handle Edit button click
   const handleEdit = (product) => {
     setProductname(product.productname);
     setPrice(product.price);
@@ -58,13 +67,13 @@ export default function AddEditProduct() {
     setEditingId(product._id);
   };
 
-  // Handle Delete
   const handleDelete = async (id) => {
     try {
-      await API.delete(`/products/deleteproduct/${id}`);
+      const res = await API.delete(`/products/deleteproduct/${id}`);
+      console.log("Delete Response:", res.data);
       fetchProducts();
     } catch (error) {
-      console.error(error);
+      console.error("Delete Error:", error.response || error.message);
     }
   };
 
@@ -72,7 +81,6 @@ export default function AddEditProduct() {
     <div>
       <h2>{editingId ? "Edit Product" : "Add Product"}</h2>
 
-      {/* Form for Add/Edit */}
       <form
         onSubmit={handleSubmit}
         style={{ display: "flex", flexDirection: "column", maxWidth: "300px" }}
@@ -106,8 +114,8 @@ export default function AddEditProduct() {
         </button>
       </form>
 
-      {/* List of Products with Edit/Delete */}
       <h2 style={{ marginTop: "30px" }}>Product List</h2>
+      {products.length === 0 && <p>No products available</p>}
       {products.map((product) => (
         <div
           key={product._id}
